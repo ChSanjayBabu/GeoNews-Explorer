@@ -85,12 +85,41 @@ function addMarker(place)
     labelAnchor: new google.maps.Point(15,0)
     });  
         
-    markers.push(marker);
-    var geo = place.place_name+','+place.postal_code;
-    $.getJSON("article.php",geo);
     
-}
+    var parameters = { geo : place.	place_name+','+place.postal_code};
+    $.getJSON("articles.php",parameters)
+    .done(function(data, textStatus, jqXHR){
+        
+        var disp ='<ul>';
+        if(data.length > 0)
+        {
+            for (var i = 0; i < data.length; i++)
+            {
+                disp +='<li> <a href = "' + data[i].link + '"> '+ data[i].title + '</a> </li>';
+            }
+        }
+        
+        else
+        {
+            disp =  'No news today!! ';
+        }
+        disp += '</ul>';
+        info = new google.maps.InfoWindow({
+            content: disp
+        });
+        marker.addListener('click', function() {
+        info.open(map, marker);
+        });
+        markers.push(marker);
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+        
+         markers.push(marker);    
+         // log error to browser's console
+         console.log(errorThrown.toString());
+     });
 
+}
 /**
  * Configures application.
  */
@@ -173,7 +202,7 @@ function hideInfo()
  */
 function removeMarkers()
 {
-    setMapOnAll(map);
+    setMapOnAll();
     function setMapOnAll(map) {
         for (var i = 0; i < markers.length; i++) {
           markers[i].setMap(null);
