@@ -86,6 +86,9 @@ function addMarker(place)
     });  
         
     markers.push(marker);
+    var geo = place.place_name+','+place.postal_code;
+    $.getJSON("article.php",geo);
+    
 }
 
 /**
