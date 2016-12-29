@@ -90,6 +90,7 @@ function addMarker(place)
     {
         var myLatlng = new google.maps.LatLng(place.latitude,place.longitude);
       
+        // adding a marker to map
         var marker = new MarkerWithLabel({
         icon: "http://maps.google.com/mapfiles/kml/pal2/icon31.png",
         map: map,
@@ -104,6 +105,7 @@ function addMarker(place)
         
         var parameters = { geo : place.	place_name+','+place.postal_code};
         
+        // adding info window to marker
         marker.addListener('click', function() {
         $.getJSON("articles.php",parameters)
         .done(function(data, textStatus, jqXHR){
@@ -131,6 +133,8 @@ function addMarker(place)
              console.log(errorThrown.toString());
          });
         });
+        
+        // pushing markers
         markers.push(marker);
         removeMarkers();
     }
@@ -270,6 +274,7 @@ function showInfo(marker, content)
     // end div
     div += "</div>";
 
+
     // set info window's content
     info.setContent(div);
 
@@ -305,6 +310,7 @@ function update()
         {
             addMarker(data[i]);
         }
+        // adding clusters to map
         var markerCluster = new MarkerClusterer(map, markers,
             {imagePath: 'js/clusters/m'});
      })
