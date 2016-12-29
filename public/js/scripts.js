@@ -12,6 +12,8 @@
 // Google Map
 var map;
 
+var pos = [];
+
 // markers for map
 var markers = [];
 
@@ -51,7 +53,7 @@ $(function() {
         center: {lat: 42.3770, lng: -71.1256}, // Cambridge
         disableDefaultUI: true,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
-        maxZoom: 14,
+        maxZoom: 16,
         panControl: true,
         styles: styles,
         zoom: 13,
@@ -74,49 +76,64 @@ $(function() {
  */
 function addMarker(place)
 {
-    var myLatlng = new google.maps.LatLng(place.latitude,place.longitude);
-    
-    var marker = new MarkerWithLabel({
-    icon: "http://maps.google.com/mapfiles/kml/pal2/icon31.png",
-    map: map,
-    position: myLatlng,
-    labelContent: place.place_name,
-    labelClass: "labels",
-    labelAnchor: new google.maps.Point(15,0)
-    });  
-        
-    
-    var parameters = { geo : place.	place_name+','+place.postal_code};
-    marker.addListener('click', function() {
-
-    $.getJSON("articles.php",parameters)
-    .done(function(data, textStatus, jqXHR){
-        
-        var disp ='<ul>';
-        if(data.length > 0)
+    var stat = false;
+    var count = 0;
+    for(var i = 0; i < markers.length; i++)
+    {
+        if((pos[i][0] ==  place.latitude) && (pos[i][1] ==  place.longitude))
         {
-            for (var i = 0; i < data.length; i++)
+            stat = true;
+            count = i;
+        }
+    }
+    if (stat == false)
+    {
+        var myLatlng = new google.maps.LatLng(place.latitude,place.longitude);
+      
+        var marker = new MarkerWithLabel({
+        icon: "http://maps.google.com/mapfiles/kml/pal2/icon31.png",
+        map: map,
+        position: myLatlng,
+        labelContent: place.place_name,
+        labelClass: "labels",
+        labelAnchor: new google.maps.Point(15,0)
+        });  
+        
+        pos.push([place.latitude,place.longitude]);
+            
+        
+        var parameters = { geo : place.	place_name+','+place.postal_code};
+        
+        marker.addListener('click', function() {
+        $.getJSON("articles.php",parameters)
+        .done(function(data, textStatus, jqXHR){
+            
+            var disp ='<ul>';
+            if(data.length > 0)
             {
-                disp +='<li> <a href = "' + data[i].link + '"> '+ data[i].title + '</a> </li>';
+                for (var i = 0; i < data.length; i++)
+                {
+                    disp +='<li> <a href = "' + data[i].link + '"> '+ data[i].title + '</a> </li>';
+                }
             }
-        }
-        
-        else
-        {
-            disp =  'No news today!! ';
-        }
-        disp += '</ul>';
-        showInfo(marker,disp);
-
-    })
-    .fail(function(jqXHR, textStatus, errorThrown) {
-        
-   
-         // log error to browser's console
-         console.log(errorThrown.toString());
-     });
-    });
-    markers.push(marker);
+            else
+            {
+                disp =  'No news today!! ';
+            }
+            disp += '</ul>';
+            showInfo(marker,disp);
+    
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            
+       
+             // log error to browser's console
+             console.log(errorThrown.toString());
+         });
+        });
+        markers.push(marker);
+        removeMarkers();
+    }
 
 }
 /**
@@ -202,12 +219,15 @@ function hideInfo()
 function removeMarkers()
 {
     clearMarkers();
-      function clearMarkers() {
-          for (var i = 0; i < markers.length; i++)
+    function clearMarkers() 
+    {
+        for (var i = 0; i < markers.length; i++)
+        {
             markers[i].setMap(null);
-      }
+        }
+    }
 }
-
+                      
 /**
  * Searches database for typeahead's suggestions.
  */
@@ -277,6 +297,7 @@ function update()
     .done(function(data, textStatus, jqXHR) {
 
         // remove old markers from map
+        //removeMarkers();
         removeMarkers();
 
         // add new markers to map
@@ -284,6 +305,8 @@ function update()
         {
             addMarker(data[i]);
         }
+        var markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'js/clusters/m'});
      })
      .fail(function(jqXHR, textStatus, errorThrown) {
 
