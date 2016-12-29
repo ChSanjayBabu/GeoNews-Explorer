@@ -87,6 +87,8 @@ function addMarker(place)
         
     
     var parameters = { geo : place.	place_name+','+place.postal_code};
+    marker.addListener('click', function() {
+
     $.getJSON("articles.php",parameters)
     .done(function(data, textStatus, jqXHR){
         
@@ -104,20 +106,17 @@ function addMarker(place)
             disp =  'No news today!! ';
         }
         disp += '</ul>';
-        info = new google.maps.InfoWindow({
-            content: disp
-        });
-        marker.addListener('click', function() {
-        info.open(map, marker);
-        });
-        markers.push(marker);
+        showInfo(marker,disp);
+
     })
     .fail(function(jqXHR, textStatus, errorThrown) {
         
-         markers.push(marker);    
+   
          // log error to browser's console
          console.log(errorThrown.toString());
      });
+    });
+    markers.push(marker);
 
 }
 /**
@@ -202,12 +201,11 @@ function hideInfo()
  */
 function removeMarkers()
 {
-    setMapOnAll();
-    function setMapOnAll(map) {
-        for (var i = 0; i < markers.length; i++) {
-          markers[i].setMap(null);
-        }
-    }
+    clearMarkers();
+      function clearMarkers() {
+          for (var i = 0; i < markers.length; i++)
+            markers[i].setMap(null);
+      }
 }
 
 /**
